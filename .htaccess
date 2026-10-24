@@ -1,0 +1,21 @@
+# ===========================================================================
+# E-Arsip - Perlindungan root proyek (defense-in-depth)
+#
+# PENTING: DocumentRoot web server HARUS diarahkan ke folder "public/".
+#
+# Berkas ini adalah jaring pengaman. Bila DocumentRoot salah diatur ke root
+# proyek, SELURUH akses tetap DITOLAK sehingga berkas sensitif seperti
+# ".env", folder app/, database/, storage/, dan scripts/ tidak akan pernah
+# dapat diakses / bocor ke publik.
+# ===========================================================================
+
+# Apache 2.4+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Apache 2.2
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

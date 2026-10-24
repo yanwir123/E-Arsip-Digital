@@ -1,0 +1,20 @@
+# Kredensial & environment
+.env
+
+# File upload arsip (jangan masuk repo)
+storage/uploads/*
+!storage/uploads/.gitkeep
+
+# Log
+storage/logs/*
+!storage/logs/.gitkeep
+
+# Vendor (jika nanti pakai composer)
+/vendor/
+
+# OS / editor
+Thumbs.db
+.DS_Store
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,2268 @@
+/* ==========================================================================
+   E-Arsip — Tema "Slush" (inflatable sticker universe on pastel paper)
+   Referensi: DESIGN.md
+   - Kanvas pastel, semua elemen interaktif outline 1px hitam (hand-cut)
+   - Radius pill (1600px) untuk nav/tombol/tag, 20–40px untuk kartu
+   - Tanpa gradient, tanpa box-shadow (elevasi lewat warna & outline)
+   - Display: Antonio (substitusi Lateral) — UI/body: Inter (substitusi Aeonik)
+   - CSS murni tanpa framework; semua style terpusat di sini (CSP: style-src
+     'self', tanpa inline style).
+
+   Struktur file:
+     1.  Tokens & dasar
+     2.  Tipografi & utilitas
+     3.  Marquee banner
+     4.  Topbar, nav, menu pengguna
+     5.  Layout (container, footer, page-head)
+     6.  Kartu, panel, statistik
+     7.  Formulir
+     8.  Tombol
+     9.  Alert flash
+     10. Tabel
+     11. Badge, filter, checklist, paginasi
+     12. Halaman auth (login/daftar/OTP)
+     13. Halaman error & komponen kecil
+     14. Animasi
+     15. Responsif (breakpoints: 1000 / 860 / 720 / 560 / 420)
+   ========================================================================== */
+
+/* ==========================================================================
+   1. Tokens & dasar
+   ========================================================================== */
+:root {
+  /* Warna — token DESIGN.md */
+  --color-carbon: #000000;
+  --color-paper-white: #ffffff;
+  --color-sky-wash: #dceeff;
+  --color-concrete-gray: #cccccc;
+  --color-soft-mist: #e9e9e9;
+  --color-electric-blue: #4da2ff;
+  --color-mint-pop: #55db9c;
+  --color-lavender: #e9ccff;
+  --color-ember: #fb4903;
+  --color-sunburst: #ffd731;
+  --color-voltage-violet: #5c4ade;
+
+  /* Alias semantic */
+  --ink: var(--color-carbon);
+  --ink-soft: rgba(0, 0, 0, 0.62);
+  --ink-faint: rgba(0, 0, 0, 0.45);
+  --surface: var(--color-paper-white);
+  --surface-pastel: var(--color-sky-wash);
+  --border: var(--color-carbon);
+  --danger-ink: #c23500;
+
+  /* Tipografi */
+  --font-display:
+    "Antonio", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
+  --font-sans:
+    "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+
+  --text-caption: 12px;
+  --text-body: 15px;
+  --text-subheading: 24px;
+  --text-heading-sm: 30px;
+  --text-heading: 64px;
+
+  /* Radius */
+  --radius-card: 20px;
+  --radius-card-lg: 40px;
+  --radius-input: 16px;
+  --radius-pill: 1600px;
+
+  --ring: 0 0 0 3px rgba(77, 162, 255, 0.35);
+  --ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+
+  --page-max: 1440px;
+  --gutter: 1.5rem;
+
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 7rem; /* kompensasi topbar sticky */
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  line-height: 1.5;
+  color: var(--ink);
+  background-color: var(--color-sky-wash);
+}
+
+form {
+  margin: 0;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--ink);
+}
+h1 {
+  font-size: 1.6rem;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.25rem;
+  overflow-wrap: anywhere;
+}
+h2 {
+  font-size: var(--text-subheading);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 2.5rem 0 0.75rem;
+  overflow-wrap: anywhere;
+}
+h3 {
+  overflow-wrap: anywhere;
+}
+
+::selection {
+  background: var(--color-sunburst);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-carbon);
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   2. Tipografi & utilitas
+   ========================================================================== */
+.muted {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.req {
+  color: var(--danger-ink);
+  font-weight: 700;
+}
+.text-danger {
+  color: var(--danger-ink);
+  font-weight: 600;
+}
+.text-center {
+  text-align: center;
+}
+.brand-mark-center {
+  margin: 0 auto 1rem;
+}
+.inline {
+  display: inline;
+}
+
+/* ==========================================================================
+   3. Marquee banner (pita pengumuman atas)
+   ========================================================================== */
+.marquee {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+  overflow: hidden;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--color-carbon);
+}
+
+.marquee-inner {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.42rem 0;
+  animation: marquee-scroll 26s linear infinite;
+}
+
+.marquee-inner span {
+  font-size: var(--text-caption);
+  font-weight: 700;
+  letter-spacing: 0.032em;
+  text-transform: uppercase;
+  padding-right: 3rem;
+}
+
+@keyframes marquee-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ==========================================================================
+   4. Topbar, nav, menu pengguna
+   ========================================================================== */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-paper-white);
+  border-bottom: 1px solid var(--color-carbon);
+  transition: background-color 0.2s var(--ease);
+}
+.topbar.is-scrolled {
+  background: var(--color-sky-wash);
+}
+
+.topbar-inner {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0.7rem var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--ink);
+}
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand-mark {
+  display: block;
+  width: 75px;
+  height: 75px;
+  flex: none;
+}
+.brand-mark img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: inherit;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  min-width: 0;
+}
+.brand-text b {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.brand-text small {
+  font-size: 0.64rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-paper-white);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease),
+    transform 0.18s var(--ease);
+}
+.nav-link svg {
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.nav-link:hover {
+  background: var(--color-sky-wash);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.nav-link.is-active {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+}
+
+.userbox {
+  margin-left: auto;
+  position: relative;
+}
+
+.user-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.3rem 0.75rem 0.3rem 0.35rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.18s var(--ease);
+}
+.user-btn:hover {
+  background: var(--color-sky-wash);
+}
+.user-btn .user-name {
+  max-width: 11rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-btn .chev {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s var(--ease);
+  flex: none;
+}
+.user-btn[aria-expanded="true"] .chev {
+  transform: rotate(180deg);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--color-paper-white);
+  background: var(--color-carbon);
+  flex: none;
+}
+.avatar-sm {
+  width: 34px;
+  height: 34px;
+  font-size: 0.9rem;
+}
+.avatar-lg {
+  width: 96px;
+  height: 96px;
+  font-size: 2.2rem;
+}
+.avatar-img {
+  object-fit: cover;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-paper-white);
+  flex: none;
+}
+
+/* Kepala profil */
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin: 1.4rem 0;
+  padding: 1.25rem;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+}
+.profile-meta {
+  min-width: 0;
+}
+.profile-name {
+  margin: 0 0 0.3rem;
+}
+.profile-meta p {
+  margin: 0.1rem 0;
+}
+.card-body-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.card-body-row p {
+  margin: 0.3rem 0 0;
+}
+.user-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.user-cell > span {
+  min-width: 0;
+}
+
+.user-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  min-width: 252px;
+  max-width: calc(100vw - 2rem);
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+  padding: 0.5rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8px) scale(0.98);
+  transform-origin: top right;
+  transition:
+    opacity 0.2s var(--ease),
+    transform 0.2s var(--ease),
+    visibility 0.2s;
+  z-index: 60;
+}
+.user-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.user-menu-head {
+  padding: 0.55rem 0.7rem 0.65rem;
+  border-bottom: 1px solid var(--color-carbon);
+  margin: 0 0 0.4rem;
+}
+.user-menu-head strong {
+  display: block;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+.user-menu-head span {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.user-menu a,
+.user-menu button {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  width: 100%;
+  min-height: 42px;
+  padding: 0.55rem 0.8rem;
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  font-size: 0.875rem;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+.user-menu a svg,
+.user-menu button svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+.user-menu a:hover,
+.user-menu button:hover {
+  background: var(--color-sky-wash);
+  text-decoration: none;
+}
+.user-menu .danger {
+  color: var(--danger-ink);
+}
+.user-menu .danger:hover {
+  background: var(--color-lavender);
+}
+
+/* Hamburger */
+.nav-toggle {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  cursor: pointer;
+  padding: 11px;
+  flex: none;
+}
+.nav-toggle span {
+  height: 2px;
+  background: var(--ink);
+  border-radius: 2px;
+  transition:
+    transform 0.22s var(--ease),
+    opacity 0.22s var(--ease);
+}
+.nav-toggle[aria-expanded="true"] {
+  background: var(--color-sunburst);
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(2) {
+  opacity: 0;
+}
+.nav-toggle[aria-expanded="true"] span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ==========================================================================
+   5. Layout (container, footer, page-head)
+   ========================================================================== */
+/* Kerangka halaman: topbar & footer tidak ikut memanjang/menyusut mengikuti
+   isi konten. Konten mengisi sisa tinggi layar sehingga footer selalu berada
+   di bawah (tidak naik ke tengah saat konten kosong/pendek). */
+.app-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.app-body > .marquee,
+.app-body > .topbar,
+.app-body > .site-footer {
+  flex: 0 0 auto;
+}
+
+.app-body > .container {
+  flex: 1 0 auto;
+  width: 100%;
+}
+
+.container {
+  max-width: var(--page-max);
+  margin: 2.2rem auto;
+  padding: 0 var(--gutter) 3.5rem;
+}
+
+.site-footer {
+  margin-top: auto;
+  background: var(--color-concrete-gray);
+  border-top: 1px solid var(--color-carbon);
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+  flex-wrap: wrap;
+  padding: 1.2rem max(var(--gutter), calc((100% - var(--page-max)) / 2));
+}
+.site-footer .muted {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.page-head {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.4rem;
+}
+.page-head > div {
+  min-width: 0;
+}
+
+/* Judul halaman — display poster (Antonio, crushed leading) */
+.page-head h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.4rem, 6vw, 4.375rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.page-head h1::after {
+  /* sticker bintang kecil di ujung judul */
+  content: "";
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  margin-left: 0.18em;
+  border-radius: 30%;
+  background: var(--color-sunburst);
+  border: 1px solid var(--color-carbon);
+  transform: rotate(12deg) translateY(-0.28em);
+}
+.page-head p.muted {
+  margin: 0.5rem 0 0;
+}
+.page-head .btn {
+  flex: none;
+}
+
+/* Kepala bagian di dalam halaman (mis. judul + jumlah data). */
+.section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  flex-wrap: wrap;
+  margin-top: 2.2rem;
+}
+.section-head h2 {
+  margin: 0;
+}
+.section-head p {
+  margin: 0.35rem 0 0;
+}
+.section-head .badge {
+  flex: none;
+}
+
+/* ==========================================================================
+   6. Kartu, panel, statistik
+   ========================================================================== */
+.card {
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+}
+
+.panel {
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+  gap: 1rem;
+  margin-top: 1.2rem;
+}
+
+.stat {
+  position: relative;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+  padding: 1.25rem 1.35rem;
+  overflow: hidden;
+  transition: transform 0.2s var(--ease);
+  min-width: 0;
+}
+.stat:hover {
+  transform: translateY(-3px);
+}
+
+.stat .stat-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-paper-white);
+  color: var(--ink);
+  margin-bottom: 0.7rem;
+}
+.stat .stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat-value {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 7vw, 3rem);
+  font-weight: 700;
+  line-height: 0.9;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.stat-text {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+.stat-label {
+  display: block;
+  margin-top: 0.3rem;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.032em;
+}
+
+/* varian warna sticker */
+.stat.stat-pastel {
+  background: var(--color-sky-wash);
+}
+.stat.stat-lavender {
+  background: var(--color-lavender);
+}
+.stat.stat-accent {
+  background: var(--color-sunburst);
+}
+.stat.stat-success {
+  background: var(--color-electric-blue);
+}
+.stat.stat-danger {
+  background: var(--color-ember);
+}
+.stat.stat-danger .stat-icon {
+  background: var(--color-paper-white);
+  color: var(--ink);
+}
+
+/* ==========================================================================
+   7. Formulir
+   ========================================================================== */
+.form label,
+.login-card label {
+  display: block;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="file"],
+input[type="search"],
+select,
+textarea,
+.reject-form input {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-input);
+  font: inherit;
+  font-weight: 500;
+  color: var(--ink);
+  background: var(--color-paper-white);
+  transition:
+    background-color 0.18s var(--ease),
+    box-shadow 0.18s var(--ease);
+}
+input::placeholder,
+textarea::placeholder {
+  color: var(--ink-faint);
+}
+input:focus,
+select:focus,
+textarea:focus,
+.reject-form input:focus {
+  outline: none;
+  background: var(--color-sky-wash);
+  box-shadow: var(--ring);
+}
+input[readonly] {
+  color: var(--ink-soft);
+  background: var(--color-soft-mist);
+  cursor: not-allowed;
+}
+select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 18px;
+  padding-right: 2.3rem;
+}
+label small {
+  font-weight: 500;
+  color: var(--ink-soft);
+}
+textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
+input[type="file"] {
+  padding: 0.55rem;
+  cursor: pointer;
+}
+input[type="file"]::file-selector-button {
+  margin-right: 0.8rem;
+  padding: 0.45rem 0.95rem;
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-white);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+input[type="file"]::file-selector-button:hover {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+}
+
+input[type="checkbox"] {
+  accent-color: var(--color-carbon);
+  width: 18px;
+  height: 18px;
+  flex: none;
+}
+
+/* Toggle password & nama file */
+.pw-wrap {
+  position: relative;
+  display: block;
+}
+.pw-wrap input {
+  padding-right: 2.9rem;
+}
+.pw-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.5rem;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    color 0.18s var(--ease),
+    background-color 0.18s var(--ease),
+    border-color 0.18s var(--ease);
+}
+.pw-toggle svg {
+  width: 18px;
+  height: 18px;
+}
+.pw-toggle:hover {
+  color: var(--ink);
+  background: var(--color-sky-wash);
+  border-color: var(--color-carbon);
+}
+.pw-toggle.is-visible {
+  color: var(--ink);
+  background: var(--color-sunburst);
+  border-color: var(--color-carbon);
+}
+
+.file-chosen {
+  display: inline-block;
+  margin-top: 0.45rem;
+  padding: 0.2rem 0.65rem;
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-pill);
+  background: var(--color-lavender);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ink);
+  word-break: break-all;
+}
+.file-chosen:empty {
+  display: none;
+}
+
+/* ==========================================================================
+   8. Tombol (pill sticker)
+   ========================================================================== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 0.62rem 1.1rem;
+  min-height: 42px;
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-white);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-align: center;
+  text-decoration: none;
+  transition:
+    transform 0.16s var(--ease),
+    background-color 0.18s var(--ease),
+    color 0.18s var(--ease);
+}
+.btn svg {
+  width: 17px;
+  height: 17px;
+  flex: none;
+}
+.btn:hover {
+  background: var(--color-sky-wash);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0);
+}
+
+/* CTA utama — filled black (Launch App) */
+.btn-primary {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+}
+.btn-primary:hover {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+}
+
+/* Aksen sticker (aksen dekoratif, bukan CTA biru) */
+.btn-accent {
+  background: var(--color-sunburst);
+  color: var(--ink);
+}
+.btn-accent:hover {
+  background: var(--color-sunburst);
+}
+
+.btn-danger {
+  background: var(--color-ember);
+  color: var(--ink);
+}
+.btn-danger:hover {
+  background: var(--color-ember);
+  color: var(--ink);
+}
+
+.btn-ghost {
+  background: transparent;
+}
+.btn-ghost:hover {
+  background: var(--color-sky-wash);
+}
+
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.78rem;
+  min-height: 34px;
+}
+.btn-block {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.btn-link:hover {
+  background: var(--color-sunburst);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+}
+.btn-link.text-danger {
+  color: var(--danger-ink);
+}
+.btn-link.text-danger:hover {
+  background: var(--color-lavender);
+}
+
+/* ==========================================================================
+   9. Alert flash (klik untuk menutup)
+   ========================================================================== */
+.alert {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1rem 3rem 1rem 1rem;
+  border-radius: 18px;
+  margin-bottom: 1rem;
+  border: 1px solid var(--color-carbon);
+  background: var(--color-sky-wash);
+  color: var(--ink);
+  cursor: pointer;
+  animation: slide-in 0.35s var(--ease) both;
+}
+.alert-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-paper-white);
+}
+.alert-icon svg {
+  width: 17px;
+  height: 17px;
+}
+.alert-content {
+  min-width: 0;
+  flex: 1;
+}
+.alert-title {
+  display: block;
+  margin-bottom: 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.alert-message {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+.alert::after {
+  content: "\2715";
+  position: absolute;
+  right: 1.1rem;
+  top: 1.05rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  opacity: 0.5;
+}
+.alert:hover::after {
+  opacity: 0.85;
+}
+.alert-success {
+  background: var(--color-lavender);
+}
+.alert-success .alert-icon {
+  background: var(--color-paper-white);
+}
+.alert-error {
+  background: var(--color-ember);
+}
+.alert-error .alert-icon {
+  background: var(--color-sunburst);
+}
+.alert-info {
+  background: var(--color-sky-wash);
+}
+.alert-info .alert-icon {
+  background: var(--color-paper-white);
+}
+
+@media (max-width: 560px) {
+  .alert {
+    padding: 0.9rem 2.6rem 0.9rem 0.9rem;
+    gap: 0.65rem;
+  }
+  .alert-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .alert-message {
+    font-size: 0.85rem;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================================================
+   10. Tabel
+   ========================================================================== */
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-paper-white);
+  margin-top: 1.1rem;
+}
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color-paper-white);
+  margin: 0;
+}
+.table th,
+.table td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--color-carbon);
+  text-align: left;
+  font-size: 0.875rem;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.table thead th {
+  background: var(--color-soft-mist);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.032em;
+  white-space: nowrap;
+}
+.table tbody tr {
+  transition: background-color 0.15s var(--ease);
+}
+.table tbody tr:hover {
+  background: var(--color-sky-wash);
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.table a {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.table a:hover {
+  background: var(--color-sunburst);
+  text-decoration: none;
+  border-radius: var(--radius-pill);
+}
+.table-wrap .table.table {
+  border: none;
+}
+
+/* Aksi dalam baris */
+.actions {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 1.4rem;
+}
+
+/* Form hapus arsip: kolom keterangan + tombol hapus */
+.delete-form {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.delete-form .reason-input {
+  max-width: 220px;
+}
+td.actions {
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 0;
+  gap: 0.35rem;
+  min-width: 84px;
+}
+td.actions > form {
+  flex: 0 0 auto;
+}
+td.actions > form:has(input:not([type="hidden"]), select) {
+  flex: 1 1 220px;
+}
+/* Baris aksi tanpa input/select cukup satu baris agar tinggi baris tabel wajar. */
+td.actions:not(:has(input:not([type="hidden"]), select)) {
+  flex-wrap: nowrap;
+  min-width: max-content;
+}
+/* Aksi tabel satu garis, terpusat vertikal; override margin umum .actions. */
+.table td.actions {
+  display: table-cell;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.table td.actions > a {
+  margin: 0 0.15rem;
+}
+td.actions a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.7rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-paper-white);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+td.actions a:hover {
+  background: var(--color-sky-wash);
+}
+td.actions a.btn-link {
+  border: 1px solid var(--color-carbon);
+  padding: 0.28rem 0.7rem;
+  font-size: 0.72rem;
+}
+.reject-form {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.reject-form input {
+  margin-top: 0;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.reject-form select {
+  margin-top: 0;
+  flex: 0 1 auto;
+  max-width: 14rem;
+}
+
+/* Tabel detail arsip/profil: outline lembut khas sticker */
+.table-detail {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+}
+.table-wrap:has(.table-detail) .table-detail th,
+.table-wrap:has(.table-detail) .table-detail td {
+  border-bottom: 1px solid var(--color-concrete-gray);
+}
+.table-wrap:has(.table-detail) .table-detail tr:last-child th,
+.table-wrap:has(.table-detail) .table-detail tr:last-child td {
+  border-bottom: none;
+}
+.table-detail th {
+  width: 200px;
+  font-size: var(--text-caption);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.032em;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   11. Badge, filter, checklist, paginasi, empty state
+   ========================================================================== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: var(--color-paper-white);
+  color: var(--ink);
+  white-space: nowrap;
+}
+.badge-pending {
+  background: var(--color-sunburst);
+}
+.badge-approved {
+  background: var(--color-electric-blue);
+}
+.badge-rejected {
+  background: var(--color-ember);
+}
+.badge-role {
+  background: var(--color-lavender);
+}
+.badge-risk-hijau {
+  background: var(--color-mint-pop);
+}
+.badge-risk-kuning {
+  background: var(--color-sunburst);
+}
+.badge-risk-merah {
+  background: var(--color-ember);
+  color: var(--color-paper-white);
+}
+.badge-penalty-basic {
+  background: var(--color-sunburst);
+}
+.badge-penalty-sedang {
+  background: var(--color-ember);
+}
+.badge-penalty-berat {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+}
+.badge-identity-belum {
+  background: var(--color-paper-white);
+}
+.badge-identity-menunggu {
+  background: var(--color-sunburst);
+}
+.badge-identity-terverifikasi {
+  background: var(--color-mint-pop);
+}
+.badge-identity-ditolak {
+  background: var(--color-ember);
+  color: var(--color-paper-white);
+}
+
+/* Filter bar */
+.filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin: 1.2rem 0 0;
+  padding: 0.85rem;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+}
+.filters input[type="text"],
+.filters input[type="search"],
+.filters select {
+  flex: 1 1 200px;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+}
+.filters .btn {
+  flex: 0 0 auto;
+}
+.filter-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+/* Checklist izin akses */
+.checklist {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
+  gap: 0.6rem;
+}
+.check-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-white);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.18s var(--ease);
+  min-width: 0;
+}
+.check-item:hover {
+  background: var(--color-sky-wash);
+}
+.check-item input {
+  width: auto;
+  margin: 0;
+}
+.check-item:has(input:checked) {
+  background: var(--color-lavender);
+}
+.check-item span {
+  overflow-wrap: anywhere;
+}
+
+/* Empty state (di dalam tabel maupun panel) */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 2.4rem 1.2rem;
+  text-align: center;
+}
+.empty svg {
+  width: 40px;
+  height: 40px;
+  opacity: 0.5;
+}
+.empty p {
+  margin: 0;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.empty .btn {
+  margin-top: 0.45rem;
+}
+td.empty-cell {
+  padding: 0;
+  border-bottom: none;
+}
+td.empty-cell:hover {
+  background: transparent;
+}
+
+/* Paginasi */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 1.3rem;
+}
+.page-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0.38rem 0.75rem;
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-pill);
+  background: var(--color-paper-white);
+  color: var(--ink);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background-color 0.16s var(--ease),
+    color 0.16s var(--ease),
+    transform 0.16s var(--ease);
+}
+.page-link:hover {
+  background: var(--color-sky-wash);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+.page-link.is-active {
+  background: var(--color-carbon);
+  color: var(--color-paper-white);
+}
+.page-dots {
+  color: var(--ink-soft);
+  padding: 0 0.25rem;
+}
+.page-info {
+  margin-left: auto;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 3.2rem 1rem;
+  color: var(--ink-soft);
+}
+.empty svg {
+  width: 54px;
+  height: 54px;
+  margin-bottom: 0.7rem;
+}
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 0.45s var(--ease),
+    transform 0.45s var(--ease);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ==========================================================================
+   12. Halaman auth (login / daftar / OTP)
+   ========================================================================== */
+.auth-body {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: var(--color-sky-wash);
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* sticker melayang di sekitar kartu auth */
+.auth-body::before,
+.auth-body::after {
+  content: "";
+  position: absolute;
+  border: 1px solid var(--color-carbon);
+  z-index: 0;
+}
+.auth-body::before {
+  width: 88px;
+  height: 88px;
+  border-radius: 22px;
+  background: var(--color-lavender);
+  top: 9%;
+  left: 8%;
+  transform: rotate(-14deg);
+}
+.auth-body::after {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-pill);
+  background: var(--color-sunburst);
+  bottom: 11%;
+  right: 9%;
+  transform: rotate(10deg);
+}
+
+.auth-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  background: var(--color-paper-white);
+  border: 1px solid var(--color-carbon);
+  border-radius: var(--radius-card-lg);
+  overflow: hidden;
+}
+
+.auth-visual {
+  position: relative;
+  padding: 2.6rem 2.3rem;
+  background: var(--color-sky-wash);
+  border-right: 1px solid var(--color-carbon);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1rem;
+  overflow: hidden;
+}
+/* pita & sticker dekoratif */
+.auth-visual::before {
+  content: "";
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  border: 1px solid var(--color-carbon);
+  background: var(--color-electric-blue);
+  top: -80px;
+  right: -70px;
+  opacity: 0.9;
+}
+.auth-visual::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 24px;
+  border: 1px solid var(--color-carbon);
+  background: var(--color-mint-pop);
+  bottom: -30px;
+  left: -25px;
+  transform: rotate(18deg);
+}
+.auth-visual > * {
+  position: relative;
+  z-index: 1;
+}
+.auth-visual .brand {
+  margin-bottom: 0.4rem;
+}
+.auth-visual h2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 2.9rem);
+  font-weight: 700;
+  line-height: 1.1;
+  text-transform: uppercase;
+  margin: 0;
+  color: var(--ink);
+}
+.auth-visual p {
+  margin: 0;
+  max-width: 34ch;
+  font-weight: 500;
+}
+
+.auth-features {
+  list-style: none;
+  padding: 0;
+  margin: 0.9rem 0 0;
+  display: grid;
+  gap: 0.6rem;
+}
+.auth-features li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.auth-features .tick {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-carbon);
+  background: var(--color-mint-pop);
+  color: var(--ink);
+  flex: none;
+}
+.auth-features .tick svg {
+  width: 14px;
+  height: 14px;
+}
+
+.auth-panel {
+  padding: 2.6rem 2.3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+.auth-wrapper {
+  width: 100%;
+  max-width: 400px;
+  padding: 0;
+  margin: 0 auto;
+}
+
+.login-card {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.login-card .g-recaptcha {
+  display: block;
+  width: 100%;
+  min-height: 78px;
+  margin: 0.25rem 0 1rem;
+  overflow: visible;
+}
+.login-card .g-recaptcha > div {
+  margin: 0 auto;
+  max-width: 100% !important;
+}
+@media (max-width: 400px) {
+  .login-card .g-recaptcha { height: 66px; }
+  .login-card .g-recaptcha > div {
+    transform: scale(.86);
+    transform-origin: left top;
+  }
+}
+@media (max-width: 340px) {
+  .login-card .g-recaptcha > div { transform: scale(.76); }
+}
+.login-card h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.4rem, 5vw, 3.2rem);
+  font-weight: 700;
+  line-height: 0.85;
+  text-transform: uppercase;
+  margin: 0 0 0.3rem;
+}
+.login-card > .muted {
+  margin-top: 0;
+}
+.auth-alt {
+  margin-top: 1.4rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+.auth-alt a {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.auth-back:hover {
+  color: var(--ink);
+}
+
+.auth-shell .card + .card {
+  margin-top: 1rem;
+  background: var(--color-lavender);
+  border: 1px solid var(--color-carbon);
+  padding: 1.1rem 1.2rem;
+  border-radius: var(--radius-card);
+}
+
+/* ==========================================================================
+   13. Halaman error & komponen kecil
+   ========================================================================== */
+.error-sticker-mark {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.2rem;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  border: 1px solid var(--color-carbon);
+  background: var(--color-sunburst);
+  transform: rotate(-6deg);
+}
+.error-sticker-mark svg {
+  width: 34px;
+  height: 34px;
+}
+.login-card .error-code {
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 16vw, 7.5rem);
+  font-weight: 700;
+  line-height: 0.78;
+  margin: 0 0 0.4rem;
+}
+
+/* ==========================================================================
+   14. Animasi
+   ========================================================================== */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fade-up {
+  animation: fade-up 0.4s var(--ease) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .marquee-inner {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   15. Responsif
+   ========================================================================== */
+
+/* --- ≤1439px: nav berubah menjadi dropdown (hamburger) ----------------- */
+@media (max-width: 1439.98px) {
+  .topbar-inner {
+    padding: 0.6rem 1rem;
+    position: relative;
+    gap: 0.6rem;
+  }
+  .nav-toggle {
+    display: flex;
+    order: 3;
+    margin-left: 0;
+  }
+  .userbox {
+    margin-left: auto;
+    margin-right: 0.25rem;
+  }
+  .user-btn .user-name {
+    display: none;
+  }
+  .user-btn {
+    padding: 0.3rem 0.5rem;
+  }
+
+  .nav {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    background: var(--color-paper-white);
+    border-bottom: 1px solid var(--color-carbon);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    padding: 0 0.7rem;
+    visibility: hidden;
+    transition:
+      max-height 0.28s var(--ease),
+      opacity 0.2s var(--ease),
+      padding 0.2s var(--ease),
+      visibility 0.2s;
+  }
+  .nav.is-open {
+    max-height: min(75vh, 560px);
+    overflow-y: auto;
+    opacity: 1;
+    visibility: visible;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+  }
+  .nav-link {
+    justify-content: flex-start;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    min-height: 44px;
+  }
+
+  .container {
+    padding: 0 1rem 3rem;
+    margin: 1.5rem auto;
+  }
+  .page-head {
+    align-items: flex-start;
+  }
+  h2 {
+    margin-top: 2rem;
+  }
+}
+
+/* --- ≤860px: auth menumpuk, sentuh lebih nyaman ------------------------ */
+@media (max-width: 860px) {
+  /* cegah zoom otomatis iOS saat fokus input */
+  input[type="text"],
+  input[type="password"],
+  input[type="email"],
+  input[type="search"],
+  select,
+  textarea,
+  .reject-form input {
+    font-size: 16px;
+  }
+
+  .btn {
+    min-height: 44px;
+  }
+  .btn-sm {
+    min-height: 38px;
+  }
+  .page-link {
+    min-height: 40px;
+    padding: 0.45rem 0.8rem;
+  }
+
+  .auth-shell {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+    border-radius: var(--radius-card);
+  }
+  .auth-visual {
+    border-right: none;
+    border-bottom: 1px solid var(--color-carbon);
+    padding: 1.9rem 1.6rem;
+  }
+  .auth-visual h2 {
+    font-size: 2rem;
+  }
+  .auth-panel {
+    padding: 1.9rem 1.6rem;
+  }
+  .auth-body::before,
+  .auth-body::after {
+    display: none;
+  }
+  .auth-body {
+    display: block;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: 1rem;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .auth-shell {
+    margin: 0 auto;
+    overflow: visible;
+  }
+  .auth-panel {
+    min-width: 0;
+  }
+}
+
+/* --- ≤1279px: tabel menjadi kartu agar tidak berdesakan di tablet ------ */
+@media (max-width: 1279.98px) {
+  .table-wrap {
+    overflow-x: visible;
+  }
+  .table-wrap .table {
+    display: block;
+    min-width: 0;
+  }
+  .table-wrap .table thead {
+    display: none;
+  }
+  .table-wrap .table tbody {
+    display: block;
+  }
+
+  .table-wrap .table tbody tr {
+    display: block;
+    border-bottom: 1px solid var(--color-carbon);
+    padding: 0.7rem 0.25rem;
+    background: var(--color-paper-white);
+  }
+  .table-wrap .table tbody tr:last-child {
+    border-bottom: none;
+  }
+  .table-wrap .table tbody tr:hover {
+    background: var(--color-paper-white);
+  }
+
+  .table-wrap .table td {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    border: none;
+    padding: 0.3rem 0.7rem;
+    text-align: right;
+    font-size: 0.875rem;
+  }
+  /* label kolom dari atribut data-label */
+  .table-wrap .table td[data-label]::before {
+    content: attr(data-label);
+    flex: none;
+    max-width: 45%;
+    font-size: var(--text-caption);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.032em;
+    color: var(--ink-soft);
+    text-align: left;
+  }
+  /* sel tanpa label (pesan kosong) tampil sebagai paragraf biasa */
+  .table-wrap .table td:not([data-label]):not(.actions) {
+    display: block;
+    text-align: left;
+    padding: 0.5rem 0.7rem;
+  }
+
+  /* sel aksi: tombol sentuh yang rapi dan mudah dijangkau */
+  .table-wrap .table td.actions {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.45rem;
+    min-width: 0;
+    text-align: left;
+    padding: 0.6rem 0.7rem 0.35rem;
+  }
+  .table-wrap .table td.actions > a,
+  .table-wrap .table td.actions > .btn {
+    flex: 0 0 auto;
+    min-height: 40px;
+    justify-content: center;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+  }
+  .table-wrap .table td.actions > form {
+    flex: 1 1 100%;
+  }
+  .table-wrap .table td.actions > form .btn {
+    min-height: 40px;
+  }
+  .table-wrap .table td.actions > form .btn-link {
+    min-height: 40px;
+    padding: 0 0.7rem;
+  }
+
+  /* tabel detail (profil/arsip): th jadi label di atas nilai */
+  .table-detail,
+  .table-wrap .table.table-detail {
+    display: block;
+  }
+  .table-wrap .table-detail tr {
+    display: block;
+    padding: 0.55rem 0.7rem;
+    border-bottom: 1px solid var(--color-concrete-gray);
+  }
+  .table-wrap .table-detail tr:last-child {
+    border-bottom: none;
+  }
+  .table-wrap .table-detail th {
+    display: block;
+    width: auto;
+    padding: 0.4rem 0 0.1rem;
+    border: none;
+    white-space: normal;
+  }
+  .table-wrap .table-detail td {
+    display: block;
+    width: auto;
+    padding: 0 0 0.35rem;
+    border: none;
+    text-align: left;
+  }
+}
+
+/* --- ≤720px: komponen layar kecil -------------------------------------- */
+@media (max-width: 720px) {
+  /* statistik: dua kolom di layar kecil */
+  .grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr));
+    gap: 0.75rem;
+  }
+  .stat {
+    padding: 1rem 1.1rem;
+  }
+
+  .page-head .btn {
+    width: 100%;
+  }
+  .table-wrap .table td.actions > a,
+  .table-wrap .table td.actions > form .btn,
+  .table-wrap .table td.actions > form .btn-link {
+    min-height: 44px;
+  }
+  .actions {
+    gap: 0.5rem;
+  }
+  .actions .btn {
+    flex: 1 1 auto;
+  }
+
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+/* --- ≤560px: filter menumpuk penuh lebar ------------------------------- */
+@media (max-width: 560px) {
+  .filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+  }
+  .filters input[type="text"],
+  .filters input[type="search"],
+  .filters select,
+  .filters .btn {
+    width: 100%;
+    flex: none;
+  }
+
+  .pagination {
+    justify-content: flex-start;
+  }
+  .page-info {
+    margin-left: 0;
+    width: 100%;
+    text-align: left;
+  }
+
+  .reject-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reject-form input,
+  .reject-form select,
+  .reject-form .btn {
+    width: 100%;
+    max-width: none;
+  }
+
+  .card {
+    padding: 1.15rem;
+  }
+  .container {
+    margin-top: 1.25rem;
+  }
+}
+
+/* --- ≤420px: kompak ---------------------------------------------------- */
+@media (max-width: 420px) {
+  :root {
+    --gutter: 0.85rem;
+  }
+
+  .brand-text small {
+    display: none;
+  }
+  .brand-mark {
+    width: 75px;
+    height: 75px;
+  }
+  .brand-text b {
+    font-size: 1.2rem;
+  }
+  .user-btn {
+    padding: 0.28rem 0.55rem 0.28rem 0.3rem;
+  }
+  .user-btn .chev {
+    display: none;
+  }
+
+  .grid {
+    gap: 0.6rem;
+  }
+  .stat-value {
+    font-size: 2.2rem;
+  }
+
+  .marquee-inner span {
+    padding-right: 2rem;
+  }
+}
+
+/* ==========================================================================
+   15b. Pratinjau berkas (validasi)
+   ========================================================================== */
+.preview-wrap {
+  border: 2px solid var(--color-carbon);
+  border-radius: var(--radius-card);
+  background: var(--color-paper-white);
+  overflow: hidden;
+  margin: 0 0 0.75rem;
+}
+
+.preview-frame {
+  display: block;
+  width: 100%;
+  height: 70vh;
+  min-height: 420px;
+  border: 0;
+}
+
+.preview-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  background: repeating-conic-gradient(#f2f2f2 0% 25%, #fff 0% 50%) 50% / 24px
+    24px;
+}
+
+/* ==========================================================================
+   16. Cetak (print) — rapikan agar rapi di kertas
+   ========================================================================== */
+@media print {
+  html {
+    scroll-padding-top: 0;
+  }
+  body {
+    background: #fff;
+  }
+
+  .marquee,
+  .nav,
+  .nav-toggle,
+  .site-footer,
+  .filters,
+  .actions,
+  .pagination,
+  .user-menu,
+  .btn,
+  .no-print {
+    display: none !important;
+  }
+
+  .topbar {
+    position: static;
+    border-bottom: 1px solid var(--color-carbon);
+  }
+  .topbar-inner {
+    padding: 0 0 0.6rem;
+  }
+  .container {
+    margin: 0 auto;
+    padding: 0;
+    max-width: none;
+  }
+
+  .card,
+  .panel,
+  .table-wrap,
+  .stat {
+    border-color: var(--color-carbon);
+  }
+  .table-wrap {
+    overflow: visible;
+  }
+  .table tbody tr:hover {
+    background: transparent;
+  }
+  .table a {
+    text-decoration: none;
+  }
+
+  h2 {
+    break-after: avoid;
+  }
+  .table-wrap,
+  .card,
+  .stat {
+    break-inside: avoid;
+  }
+}

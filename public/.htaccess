@@ -1,0 +1,47 @@
+# ===========================================================================
+# E-Arsip - Konfigurasi web server untuk folder public/ (DocumentRoot)
+# ===========================================================================
+
+# Jangan tampilkan daftar isi direktori.
+Options -Indexes
+
+# Tolak akses ke berkas tersembunyi (mis. .env, .htaccess, .git).
+<FilesMatch "^\.">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Tolak akses ke berkas sensitif/backup (defense-in-depth).
+<FilesMatch "\.(env|ini|log|sql|bak|old|orig|save|swp|swo|lock|md)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Arahkan semua request ke front controller, kecuali file yang benar-benar ada.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Blokir akses langsung ke file/direktori tersembunyi (mis. .env).
+    RewriteRule (^|/)\. - [F]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Jangan izinkan eksekusi PHP di folder upload bila entah bagaimana berada di webroot.
+<IfModule mod_php.c>
+    <FilesMatch "\.(php|phtml|phar)$">
+        php_flag engine off
+    </FilesMatch>
+</IfModule>

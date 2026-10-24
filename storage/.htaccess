@@ -1,0 +1,17 @@
+# Berkas arsip & foto bersifat privat: tolak SEMUA akses web langsung.
+# Berkas hanya boleh dibaca lewat controller (ArsipController/ProfileController).
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+# Matikan eksekusi skrip apa pun di folder ini.
+<IfModule mod_php.c>
+    <FilesMatch "\.(php|phtml|phar|phps|cgi|pl|py|sh)$">
+        php_flag engine off
+    </FilesMatch>
+</IfModule>
