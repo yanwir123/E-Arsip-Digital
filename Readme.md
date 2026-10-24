@@ -43,7 +43,7 @@ E-Arsip adalah aplikasi web manajemen arsip digital berbasis **PHP murni (vanill
 Halaman masuk dengan penjelasan singkat fitur di sisi kiri, kolom username/password, serta verifikasi reCAPTCHA.
 
 <p align="center">
-  <img src="docs/screenshots/01-login.png" alt="Halaman Login E-Arsip" width="820">
+  <img src="public/assets/img/01-login.png" alt="Halaman Login E-Arsip" width="820">
 </p>
 
 ### Dashboard
@@ -51,7 +51,7 @@ Halaman masuk dengan penjelasan singkat fitur di sisi kiri, kolom username/passw
 Ringkasan jumlah arsip **Menunggu Validasi**, **Disetujui**, dan **Ditolak**, disertai daftar arsip terbaru.
 
 <p align="center">
-  <img src="docs/screenshots/02-dashboard.png" alt="Dashboard E-Arsip" width="820">
+  <img src="public/assets/img/02-dashboard.png" alt="Dashboard E-Arsip" width="820">
 </p>
 
 ### Daftar Arsip
@@ -59,7 +59,7 @@ Ringkasan jumlah arsip **Menunggu Validasi**, **Disetujui**, dan **Ditolak**, di
 Pencarian berdasarkan judul/kode, filter status, serta label **status** dan **risiko** (Aman / Perhatian / Melanggar) pada setiap arsip.
 
 <p align="center">
-  <img src="docs/screenshots/03-daftar-arsip.png" alt="Daftar Arsip E-Arsip" width="820">
+  <img src="public/assets/img/03-daftar-arsip.png" alt="Daftar Arsip E-Arsip" width="820">
 </p>
 
 ### Unggah Arsip
@@ -67,7 +67,7 @@ Pencarian berdasarkan judul/kode, filter status, serta label **status** dan **ri
 Formulir unggah dengan kode (opsional), judul, kategori, deskripsi, dan berkas (maks. 10 MB). Arsip berstatus _Menunggu Validasi_ hingga disetujui admin.
 
 <p align="center">
-  <img src="docs/screenshots/05-unggah-arsip.png" alt="Form Unggah Arsip E-Arsip" width="820">
+  <img src="public/assets/img/05-unggah-arsip.png" alt="Form Unggah Arsip E-Arsip" width="820">
 </p>
 
 ### Manajemen Pengguna _(khusus developer)_
@@ -75,7 +75,7 @@ Formulir unggah dengan kode (opsional), judul, kategori, deskripsi, dan berkas (
 Kelola akun, role, dan status pengguna, lengkap dengan informasi login terakhir.
 
 <p align="center">
-  <img src="docs/screenshots/04-manajemen-pengguna.png" alt="Manajemen Pengguna E-Arsip" width="820">
+  <img src="public/assets/img/04-manajemen-pengguna.png" alt="Manajemen Pengguna E-Arsip" width="820">
 </p>
 
 ---
@@ -174,13 +174,14 @@ E-Arsip/
 │   ├── migrate_security.php     # Migrasi kolom/tabel keamanan (rate limit, dll.)
 │   ├── seed.php                 # Seeder akun awal
 │   └── smoke_test.php           # Uji asap (end-to-end via HTTP)
-├── docs/
-│   └── screenshots/             # Tangkapan layar untuk README
 ├── public/                      # DOCUMENT ROOT (arahkan web server ke sini)
 │   ├── index.php                # Front controller + definisi route
 │   ├── router.php               # Router untuk PHP built-in server
 │   ├── .htaccess                # Front-controller + blokir eksekusi PHP di upload
-│   └── assets/                  # css/app.css, js/app.js
+│   └── assets/
+│       ├── css/app.css          # Gaya antarmuka
+│       ├── js/app.js            # Skrip antarmuka
+│       └── img/                 # Gambar & tangkapan layar (dipakai di README)
 ├── scripts/
 │   └── cleanup.php              # Bersihkan pending kedaluwarsa, ban, OTP, berkas yatim (CLI)
 ├── storage/
